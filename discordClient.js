@@ -24,33 +24,62 @@ client.once('ready', () => {
   startTimeoutChecker();
 });
 
-// メンバー参加（再参加も含む）時：DBレコードをリセットして認証フローの起点にする
+/**
+ * ウェルカムメッセージを削除するヘルパー関数
+ */
+async function deleteWelcomeMessage(discordId) {
+  const member = db.getMember(discordId);
+  if (!member || !member.welcome_message_id || !WELCOME_CHANNEL_ID) return;
+
+  try {
+    const channel = await client.channels.fetch(WELCOME_CHANNEL_ID).catch(() => null);
+    if (channel) {
+      const msg = await channel.messages.fetch(member.welcome_message_id).catch(() => null);
+      if (msg) {
+        await msg.delete().catch(() => {});
+        console.log(`[discord] ウェルカムメッセージを削除しました: ${member.welcome_message_id}`);
+      }
+    }
+  } catch (e) {
+    console.error('[discord] メッセージ削除エラー:', e.message);
+  }
+}
+
+// メンバー参加時：ウェルカムチャンネルにのみ通知してメッセージIDをDB保存
 client.on('guildMemberAdd', async (member) => {
   if (member.guild.id !== GUILD_ID) return;
 
-  db.upsertJoin(member.id, member.guild.id, member.user.tag);
-  console.log(`[join] ${member.user.tag} (${member.id}) が参加しました`);
-
   const authUrl = `${BASE_URL}/auth/discord`;
-  try {
-    await member.send(
-      `ようこそ！サーバーを利用するには認証が必要です。\n` +
-      `以下のリンクからログインし、クイズに回答してください（制限時間: ${JOIN_TIMEOUT_HOURS}時間）。\n` +
-      `${authUrl}`
-    );
-  } catch (e) {
-    // DM拒否設定などで送れない場合は、任意でウェルカムチャンネルに案内を出す
-    if (WELCOME_CHANNEL_ID) {
-      const channel = await member.guild.channels.fetch(WELCOME_CHANNEL_ID).catch(() => null);
-      if (channel) {
-        channel.send(`<@${member.id}> DMを送信できませんでした。こちらから認証してください: ${authUrl}`);
-      }
+  let messageId = null;
+
+  if (WELCOME_CHANNEL_ID) {
+    const channel = await member.guild.channels.fetch(WELCOME_CHANNEL_ID).catch(() => null);
+    if (channel) {
+      const sentMsg = await channel.send(
+        `<@${member.id}> ようこそ！サーバーを利用するには認証が必要です。\n` +
+        `以下のリンクからログインし、クイズに回答してください（制限時間: ${JOIN_TIMEOUT_HOURS}時間）。\n` +
+        `${authUrl}`
+      ).catch(() => null);
+
+      if (sentMsg) messageId = sentMsg.id;
     }
   }
+  // DBにメッセージID含めて保存
+  db.upsertJoin(member.id, member.guild.id, member.user.tag, messageId);
+  console.log(`[join] ${member.user.tag} (${member.id}) が参加しました（MsgID: ${messageId}）`);
+});
+
+// メンバー退出時：メッセージを消してDBから削除
+client.on('guildMemberRemove', async (member) => {
+  if (member.guild.id !== GUILD_ID) return;
+
+  await deleteWelcomeMessage(member.id);
+  db.deleteMember(member.id);
+  console.log(`[leave] ${member.user.tag} が退出したため、メッセージとDBレコードを削除しました`);
 });
 
 /**
- * 指定ユーザーに認証ロールを付与し、非認証ロールを除去する
+ * 認証ロール付与 & メッセージ削除
  */
 async function grantVerifiedRole(discordId) {
   const guild = await client.guilds.fetch(GUILD_ID);
@@ -59,6 +88,7 @@ async function grantVerifiedRole(discordId) {
   if (member.roles.cache.has(UNVERIFIED_ROLE_ID)) {
     await member.roles.remove(UNVERIFIED_ROLE_ID).catch(() => {});
   }
+  await deleteWelcomeMessage(discordId);
 }
 
 /**
@@ -68,6 +98,7 @@ async function grantUnverifiedRole(discordId) {
   const guild = await client.guilds.fetch(GUILD_ID);
   const member = await guild.members.fetch(discordId);
   await member.roles.add(UNVERIFIED_ROLE_ID);
+  await deleteWelcomeMessage(discordId);
 }
 
 /**

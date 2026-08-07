@@ -15,19 +15,20 @@ db.exec(schemaSql);
 /**
  * 参加時（再参加含む）に呼ぶ。既存レコードがあってもリセットする。
  */
-function upsertJoin(discordId, guildId, username) {
+function upsertJoin(discordId, guildId, username, welcomeMessageId = null) {
   const now = Date.now();
   db.prepare(`
-    INSERT INTO members (discord_id, guild_id, username, joined_at, wrong_streak, cooldown_until, updated_at)
-    VALUES (@discordId, @guildId, @username, @now, 0, 0, @now)
+    INSERT INTO members (discord_id, guild_id, username, joined_at, wrong_streak, cooldown_until, welcome_message_id, updated_at)
+    VALUES (@discordId, @guildId, @username, @now, 0, 0, @welcomeMessageId, @now)
     ON CONFLICT(discord_id) DO UPDATE SET
       guild_id = @guildId,
       username = @username,
       joined_at = @now,
       wrong_streak = 0,
       cooldown_until = 0,
+      welcome_message_id = COALESCE(@welcomeMessageId, welcome_message_id),
       updated_at = @now
-  `).run({ discordId, guildId, username, now });
+  `).run({ discordId, guildId, username, welcomeMessageId, now });
 }
 
 function getMember(discordId) {

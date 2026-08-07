@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS members (
   joined_at       INTEGER NOT NULL,
   wrong_streak    INTEGER NOT NULL DEFAULT 0,
   cooldown_until  INTEGER NOT NULL DEFAULT 0,
+  welcome_message_id TEXT,
   updated_at      INTEGER NOT NULL
 );
