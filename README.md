@@ -35,9 +35,9 @@
 - 未認証ユーザーがサーバーの主要チャンネルを見えないように、
   `@everyone` のチャンネル閲覧権限をOFFにし、認証ロールに対してのみ閲覧権限を付与する運用を推奨
 
-### 3. reCAPTCHA
+### 3. Turnstile
 
-- https://www.google.com/recaptcha/admin で「reCAPTCHA v2（チェックボックス）」を登録
+- Cloudflare で「Turnstile」を登録
 - サイトキー・シークレットキーを取得し、Webサーバーを公開するドメイン（`localhost`も可）を登録
 
 ### 4. 環境変数

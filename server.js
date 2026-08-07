@@ -182,42 +182,47 @@ function createServer(discordActions) {
     });
   });
 
-  // ---- reCAPTCHA表示 ----
+  // ---- Turnstile表示 ----
   app.get('/captcha', requireLogin, (req, res) => {
     if (!req.session.quizPassed) return res.redirect('/quiz');
-    res.render('captcha', { siteKey: RECAPTCHA_SITE_KEY });
+    res.render('captcha', { siteKey: process.env.TURNSTILE_SITE_KEY });
   });
 
-  // ---- reCAPTCHA検証 → ロール付与 ----
+  // ---- Turnstile検証 → ロール付与 ----
   app.post('/captcha/verify', requireLogin, async (req, res) => {
     if (!req.session.quizPassed) return res.redirect('/quiz');
 
-    const token = req.body['g-recaptcha-response'];
+    // 1. Cloudflare Turnstile から渡されるトークンを取得
+    const token = req.body['cf-turnstile-response'];
     if (!token) {
       return res.render('captcha', {
-        siteKey: RECAPTCHA_SITE_KEY,
-        error: 'reCAPTCHAにチェックを入れてください。',
+        siteKey: process.env.TURNSTILE_SITE_KEY,
+        error: '認証チェックを完了してください。',
       });
     }
 
     try {
-      const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      // 2. Cloudflare の siteverify エンドポイントへ検証リクエスト
+      const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          secret: RECAPTCHA_SECRET_KEY,
+          secret: process.env.TURNSTILE_SECRET_KEY,
           response: token,
+          remoteip: req.ip,
         }),
       });
       const verifyData = await verifyRes.json();
 
+      // 3. 検証失敗時の処理
       if (!verifyData.success) {
         return res.render('captcha', {
-          siteKey: RECAPTCHA_SITE_KEY,
-          error: 'reCAPTCHAの検証に失敗しました。もう一度お試しください。',
+          siteKey: process.env.TURNSTILE_SITE_KEY,
+          error: 'Turnstileの検証に失敗しました。もう一度お試しください。',
         });
       }
 
+      // 4. 検証成功：Discordロール付与とDB更新
       const discordId = req.session.discordUser.id;
       await grantVerifiedRole(discordId);
       db.setStatus(discordId, 'verified');
