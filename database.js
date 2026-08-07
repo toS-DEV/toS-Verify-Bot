@@ -1,26 +1,19 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const db = new Database(path.join(__dirname, 'data.sqlite'));
+// DBファイルのパスを指定
+const dbPath = path.join(__dirname, 'db', 'data.sqlite');
+const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 
-db.exec(`
-CREATE TABLE IF NOT EXISTS members (
-  discord_id      TEXT PRIMARY KEY,
-  guild_id        TEXT NOT NULL,
-  username        TEXT,
-  joined_at       INTEGER NOT NULL,
-  status          TEXT NOT NULL DEFAULT 'pending', -- pending | verified | unverified
-  wrong_streak    INTEGER NOT NULL DEFAULT 0,
-  cooldown_until  INTEGER NOT NULL DEFAULT 0,
-  updated_at      INTEGER NOT NULL
-);
-`);
+// schema.sql からテーブル定義を読み込んで実行
+const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+db.exec(schemaSql);
 
 /**
  * 参加時（再参加含む）に呼ぶ。既存レコードがあってもリセットする。
- * これにより「非認証ロールがついた状態で再挑戦したい場合はサーバーに入り直す」
- * という仕様を、Discordがロールを自動で外してくれる仕様と組み合わせて実現する。
  */
 function upsertJoin(discordId, guildId, username) {
   const now = Date.now();

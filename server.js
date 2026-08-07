@@ -15,8 +15,8 @@ function createServer(discordActions) {
     DISCORD_CLIENT_SECRET,
     DISCORD_REDIRECT_URI,
     SESSION_SECRET,
-    RECAPTCHA_SITE_KEY,
-    RECAPTCHA_SECRET_KEY,
+    TURNSTILE_SITE_KEY,
+    TURNSTILE_SECRET_KEY,
     COOLDOWN_MINUTES = '1',
     MAX_WRONG_STREAK = '3',
     QUIZ_QUESTION_COUNT = '3',
@@ -185,7 +185,7 @@ function createServer(discordActions) {
   // ---- Turnstile表示 ----
   app.get('/captcha', requireLogin, (req, res) => {
     if (!req.session.quizPassed) return res.redirect('/quiz');
-    res.render('captcha', { siteKey: process.env.TURNSTILE_SITE_KEY });
+    res.render('captcha', { siteKey: TURNSTILE_SITE_KEY });
   });
 
   // ---- Turnstile検証 → ロール付与 ----
@@ -196,7 +196,7 @@ function createServer(discordActions) {
     const token = req.body['cf-turnstile-response'];
     if (!token) {
       return res.render('captcha', {
-        siteKey: process.env.TURNSTILE_SITE_KEY,
+        siteKey: TURNSTILE_SITE_KEY,
         error: '認証チェックを完了してください。',
       });
     }
@@ -207,7 +207,7 @@ function createServer(discordActions) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          secret: process.env.TURNSTILE_SECRET_KEY,
+          secret: TURNSTILE_SECRET_KEY,
           response: token,
           remoteip: req.ip,
         }),
@@ -217,7 +217,7 @@ function createServer(discordActions) {
       // 3. 検証失敗時の処理
       if (!verifyData.success) {
         return res.render('captcha', {
-          siteKey: process.env.TURNSTILE_SITE_KEY,
+          siteKey: TURNSTILE_SITE_KEY,
           error: 'Turnstileの検証に失敗しました。もう一度お試しください。',
         });
       }
