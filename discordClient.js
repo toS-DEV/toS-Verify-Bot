@@ -105,12 +105,12 @@ function startTimeoutChecker() {
       try {
         const alreadyVerified = await hasVerifiedRole(row.discord_id);
         if (alreadyVerified) {
-          db.setStatus(row.discord_id, 'verified');
+          db.deleteMember(row.discord_id);
           continue;
         }
         await grantUnverifiedRole(row.discord_id);
-        db.setStatus(row.discord_id, 'unverified');
-        console.log(`[timeout] ${row.discord_id} を24h超過のため非認証化しました`);
+        db.deleteMember(row.discord_id);
+        console.log(`[timeout] ${row.discord_id} を24h超過のため非認証化しDBから削除しました`);
       } catch (e) {
         console.error(`[timeout] ${row.discord_id} の処理に失敗:`, e.message);
       }

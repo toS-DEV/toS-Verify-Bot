@@ -8,6 +8,7 @@ function createServer(discordActions) {
   const {
     grantVerifiedRole,
     hasUnverifiedRole,
+    hasVerifiedRole,
   } = discordActions;
 
   const {
@@ -17,6 +18,7 @@ function createServer(discordActions) {
     SESSION_SECRET,
     TURNSTILE_SITE_KEY,
     TURNSTILE_SECRET_KEY,
+    GUILD_ID,
     COOLDOWN_MINUTES = '1',
     MAX_WRONG_STREAK = '3',
     QUIZ_QUESTION_COUNT = '3',
@@ -100,27 +102,34 @@ function createServer(discordActions) {
   // ---- クイズ表示 ----
   app.get('/quiz', requireLogin, async (req, res) => {
     const discordId = req.session.discordUser.id;
-    const member = db.getMember(discordId);
 
-    if (!member) {
-      return res.render('blocked', {
-        reason: 'サーバーの参加記録が見つかりません。一度サーバーから退出し、再度参加してからお試しください。',
-      });
-    }
+    // 1. まずDiscordのロール状態を直接チェックする
+    const [verified, unverified] = await Promise.all([
+      hasVerifiedRole(discordId).catch(() => false),
+      hasUnverifiedRole(discordId).catch(() => false),
+    ]);
 
-    if (member.status === 'verified') {
+    if (verified) {
       return res.render('success', { alreadyVerified: true });
     }
 
-    // 非認証ロールが付いている場合はクイズに入れない（再参加必須）
-    const unverified = await hasUnverifiedRole(discordId).catch(() => false);
-    if (unverified || member.status === 'unverified') {
+    if (unverified) {
       return res.render('blocked', {
         reason: '非認証ロールが付与されています。再挑戦するには一度サーバーから退出し、再度参加してください。',
       });
     }
 
-    // クールタイム中か確認
+    // 2. ロールを持っていない場合、DBレコードを確認する
+    let member = db.getMember(discordId);
+
+    // DBにいない（ロールを外されて再認証になった人や、DBがリセットされた人）場合は今参加した扱いとしてDB登録！
+    if (!member) {
+      const guildId = GUILD_ID || '';
+      db.upsertJoin(discordId, guildId, req.session.discordUser.username);
+      member = db.getMember(discordId);
+    }
+
+    // 3. クールタイム中か確認
     const now = Date.now();
     if (member.cooldown_until && member.cooldown_until > now) {
       const remainingSec = Math.ceil((member.cooldown_until - now) / 1000);
@@ -166,7 +175,7 @@ function createServer(discordActions) {
     if (streak >= maxStreak) {
       try {
         await discordActions.grantUnverifiedRole(discordId);
-        db.setStatus(discordId, 'unverified');
+        db.deleteMember(discordId);
       } catch (e) {
         console.error('[quiz] 非認証ロール付与に失敗:', e.message);
       }
@@ -225,8 +234,7 @@ function createServer(discordActions) {
       // 4. 検証成功：Discordロール付与とDB更新
       const discordId = req.session.discordUser.id;
       await grantVerifiedRole(discordId);
-      db.setStatus(discordId, 'verified');
-      db.resetWrongStreak(discordId);
+      db.deleteMember(discordId);
       req.session.quizPassed = false;
 
       res.render('success', { alreadyVerified: false });

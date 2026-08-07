@@ -18,13 +18,12 @@ db.exec(schemaSql);
 function upsertJoin(discordId, guildId, username) {
   const now = Date.now();
   db.prepare(`
-    INSERT INTO members (discord_id, guild_id, username, joined_at, status, wrong_streak, cooldown_until, updated_at)
-    VALUES (@discordId, @guildId, @username, @now, 'pending', 0, 0, @now)
+    INSERT INTO members (discord_id, guild_id, username, joined_at, wrong_streak, cooldown_until, updated_at)
+    VALUES (@discordId, @guildId, @username, @now, 0, 0, @now)
     ON CONFLICT(discord_id) DO UPDATE SET
       guild_id = @guildId,
       username = @username,
       joined_at = @now,
-      status = 'pending',
       wrong_streak = 0,
       cooldown_until = 0,
       updated_at = @now
@@ -35,10 +34,6 @@ function getMember(discordId) {
   return db.prepare(`SELECT * FROM members WHERE discord_id = ?`).get(discordId);
 }
 
-function setStatus(discordId, status) {
-  db.prepare(`UPDATE members SET status = ?, updated_at = ? WHERE discord_id = ?`)
-    .run(status, Date.now(), discordId);
-}
 
 function incrementWrongStreak(discordId) {
   db.prepare(`UPDATE members SET wrong_streak = wrong_streak + 1, updated_at = ? WHERE discord_id = ?`)
@@ -57,7 +52,7 @@ function setCooldown(discordId, untilTimestampMs) {
 }
 
 function getPendingOlderThan(cutoffTimestampMs) {
-  return db.prepare(`SELECT * FROM members WHERE status = 'pending' AND joined_at < ?`)
+  return db.prepare(`SELECT * FROM members WHERE joined_at < ?`)
     .all(cutoffTimestampMs);
 }
 
@@ -68,7 +63,6 @@ function deleteMember(discordId) {
 module.exports = {
   upsertJoin,
   getMember,
-  setStatus,
   incrementWrongStreak,
   resetWrongStreak,
   setCooldown,
