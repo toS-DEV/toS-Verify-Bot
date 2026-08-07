@@ -1,3 +1,10 @@
 .DS_Store
 .env
 data/questions.json
+node_modules
+node_modules/*
+.nvmrc
+db/data.sqlite-shm
+db/data.sqlite
+db/data.sqlite-wal
+*.log
