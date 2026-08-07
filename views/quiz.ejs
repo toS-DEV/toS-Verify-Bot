@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>クイズ</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="card">
+    <span class="badge info">認証クイズ</span>
+    <h1>すべて正解してください</h1>
+    <p class="muted">1問でも間違えるとクールタイムが発生します。3回連続で間違えると再挑戦にはサーバーへの再参加が必要になります。</p>
+    <form method="POST" action="/quiz/submit">
+      <% questions.forEach(function(q, qi) { %>
+        <div class="question">
+          <p><%= qi + 1 %>. <%= q.question %></p>
+          <% q.choices.forEach(function(choice, ci) { %>
+            <label class="choice">
+              <input type="radio" name="<%= q.id %>" value="<%= ci %>" required>
+              <%= choice %>
+            </label>
+          <% }) %>
+        </div>
+      <% }) %>
+      <button type="submit">回答する</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>最終確認</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+  <div class="card">
+    <span class="badge success">クイズ全問正解！</span>
+    <h1>最後にreCAPTCHA認証をしてください</h1>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="error-text"><%= error %></p>
+    <% } %>
+    <form method="POST" action="/captcha/verify">
+      <div class="g-recaptcha" data-sitekey="<%= siteKey %>"></div>
+      <button type="submit">認証を完了する</button>
+    </form>
+  </div>
+</body>
+</html>

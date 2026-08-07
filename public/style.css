@@ -1,0 +1,101 @@
+:root {
+  --bg: #313338;
+  --card: #2b2d31;
+  --accent: #5865f2;
+  --accent-hover: #4752c4;
+  --text: #f2f3f5;
+  --muted: #949ba4;
+  --danger: #f23f42;
+  --success: #23a55a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin-top: 0;
+}
+
+p.muted {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.question {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #3f4147;
+}
+
+.question:last-of-type { border-bottom: none; }
+
+.question p {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.choice {
+  display: block;
+  background: #383a40;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.choice:hover { background: #40434a; }
+
+.choice input { margin-right: 10px; }
+
+button, .btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 12px;
+}
+
+button:hover, .btn:hover { background: var(--accent-hover); }
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.badge.success { background: rgba(35,165,90,0.15); color: var(--success); }
+.badge.danger { background: rgba(242,63,66,0.15); color: var(--danger); }
+.badge.info { background: rgba(88,101,242,0.15); color: var(--accent); }
+
+.error-text { color: var(--danger); margin-bottom: 12px; }

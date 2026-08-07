@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>クールタイム中</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="card">
+    <span class="badge danger">クールタイム中</span>
+    <h1>少し時間を置いてください</h1>
+    <p class="muted">直前の回答が不正解でした。あと約 <strong id="sec"><%= remainingSec %></strong> 秒でもう一度挑戦できます。</p>
+    <a class="btn" href="/quiz">再読み込み</a>
+  </div>
+  <script>
+    let remaining = <%= remainingSec %>;
+    const el = document.getElementById('sec');
+    const timer = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(timer);
+        location.href = '/quiz';
+        return;
+      }
+      el.textContent = remaining;
+    }, 1000);
+  </script>
+</body>
+</html>

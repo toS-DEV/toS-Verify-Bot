@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>不正解</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="card">
+    <span class="badge danger">不正解</span>
+    <h1>残念、正解ではありませんでした</h1>
+    <p class="muted">
+      <%= cooldownMinutes %>分間のクールタイムが発生しました。<br>
+      連続不正解: <%= streak %> / <%= maxStreak %>（<%= maxStreak %>回連続で非認証ロールが付与されます）
+    </p>
+    <a class="btn" href="/quiz">クイズページへ戻る</a>
+  </div>
+</body>
+</html>

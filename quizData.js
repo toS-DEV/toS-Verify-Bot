@@ -1,0 +1,64 @@
+// クイズ問題はここを編集してサーバーに合わせてください。
+// answerIndex は choices 配列の正解のインデックス（0始まり）
+const QUESTIONS = [
+  {
+    id: 'q1',
+    question: 'このサーバーで禁止されている行為はどれですか？',
+    choices: ['他人への誹謗中傷', '雑談', '自己紹介', '質問すること'],
+    answerIndex: 0,
+  },
+  {
+    id: 'q2',
+    question: 'ルール違反を見つけたときの正しい対応はどれですか？',
+    choices: ['自分で相手に注意する', '運営・モデレーターに報告する', '無視する', 'サーバーを荒らす'],
+    answerIndex: 1,
+  },
+  {
+    id: 'q3',
+    question: '個人情報の扱いとして正しいものはどれですか？',
+    choices: [
+      '他人の個人情報を勝手に公開してよい',
+      '自分の個人情報も他人の個人情報も慎重に扱う',
+      '個人情報は誰でも自由に共有してよい',
+      '特にルールはない',
+    ],
+    answerIndex: 1,
+  },
+  {
+    id: 'q4',
+    question: '宣伝・スパム行為についてのルールはどれですか？',
+    choices: [
+      '許可なく宣伝してよい',
+      '運営の許可なく宣伝・スパムをしてはいけない',
+      '宣伝は歓迎されている',
+      'ルールはチャンネルごとに存在しない',
+    ],
+    answerIndex: 1,
+  },
+  {
+    id: 'q5',
+    question: 'このサーバーのルールを守らなかった場合どうなりますか？',
+    choices: [
+      '何も起こらない',
+      '警告やキック・BANなどの対象になりうる',
+      '自動的に管理者になれる',
+      '無条件で全チャンネルが見られなくなる',
+    ],
+    answerIndex: 1,
+  },
+];
+
+/**
+ * ランダムにn問取得する。
+ * 選んだ問題はセッションに保存し、採点時に使う。
+ */
+function pickRandomQuestions(n) {
+  const shuffled = [...QUESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(n, shuffled.length));
+}
+
+function getQuestionsByIds(ids) {
+  return ids.map((id) => QUESTIONS.find((q) => q.id === id)).filter(Boolean);
+}
+
+module.exports = { QUESTIONS, pickRandomQuestions, getQuestionsByIds };
