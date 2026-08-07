@@ -61,6 +61,10 @@ function getPendingOlderThan(cutoffTimestampMs) {
     .all(cutoffTimestampMs);
 }
 
+function deleteMember(discordId) {
+  db.prepare(`DELETE FROM members WHERE discord_id = ?`).run(discordId);
+}
+
 module.exports = {
   upsertJoin,
   getMember,
@@ -69,4 +73,5 @@ module.exports = {
   resetWrongStreak,
   setCooldown,
   getPendingOlderThan,
+  deleteMember,
 };
