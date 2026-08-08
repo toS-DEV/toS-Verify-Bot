@@ -57,7 +57,10 @@ function createServer(discordActions) {
       scope: 'identify',
       prompt: 'consent',
     });
-    res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
+
+    const targetUrl = `https://discord.com/oauth2/authorize?${params.toString()}`;
+    
+    res.redirect(targetUrl);
   });
 
   // ---- OAuth2: コールバック ----

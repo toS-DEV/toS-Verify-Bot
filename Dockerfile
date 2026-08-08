@@ -1,4 +1,4 @@
-FROM node:20-alpine-slim
+FROM node:20-slim
 
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -9,11 +9,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 
-EXPOSE 3002
-
-# 起動コマンド
-CMD ["node", "index.js"]
+CMD ["npm", "start"]

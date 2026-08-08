@@ -19,7 +19,7 @@ const client = new Client({
   partials: [Partials.GuildMember],
 });
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log(`[discord] ログイン完了: ${client.user.tag}`);
   startTimeoutChecker();
 });
