@@ -3,17 +3,21 @@
   --card: #2b2d31;
   --accent: #5865f2;
   --accent-hover: #4752c4;
+  --accent-active: #3c45a5;
   --text: #f2f3f5;
   --muted: #949ba4;
   --danger: #f23f42;
   --success: #23a55a;
+  --choice-bg: #383a40;
+  --choice-hover: #40434a;
+  --choice-selected: rgba(88, 101, 242, 0.15);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   display: flex;
@@ -21,25 +25,30 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  -webkit-font-smoothing: antialiased;
 }
 
 .card {
   background: var(--card);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 32px;
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 h1 {
   font-size: 1.4rem;
+  font-weight: 700;
   margin-top: 0;
+  margin-bottom: 8px;
 }
 
 p.muted {
   color: var(--muted);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 24px;
 }
 
 .question {
@@ -52,45 +61,113 @@ p.muted {
 
 .question p {
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 12px;
 }
 
+/* --- ラジオボタン（選択肢）をDiscord風のカードUI化 --- */
 .choice {
-  display: block;
-  background: #383a40;
+  display: flex;
+  align-items: center;
+  background: var(--choice-bg);
+  border: 1px solid transparent;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: background 0.15s;
+  font-size: 0.95rem;
+  font-weight: 500;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
-.choice:hover { background: #40434a; }
+.choice:hover { background: var(--choice-hover); }
 
-.choice input { margin-right: 10px; }
+.choice:active { transform: scale(0.99); }
 
+/* 選択された選択肢のハイライト (:has 対応ブラウザ) */
+.choice:has(input:checked) {
+  background: var(--choice-selected);
+  border-color: var(--accent);
+}
+
+/* 標準ラジオボタンを消してDiscord風のカスタム丸ボタンを描画 */
+.choice input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  margin-right: 12px;
+  outline: none;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.choice input[type="radio"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #fff;
+  transform: scale(0);
+  transition: transform 0.15s ease-in-out;
+}
+
+.choice input[type="radio"]:checked {
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+
+.choice input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+/* --- ボタンをDiscordアプリ準拠のフルウィズデザイン化 --- */
 button, .btn {
-  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* 横幅いっぱいに拡大 */
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 13px 24px;
+  border-radius: 4px; /* Discord公式の角丸(4px) */
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  margin-top: 12px;
+  margin-top: 24px;
+  transition: background-color 0.17s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-button:hover, .btn:hover { background: var(--accent-hover); }
+button:hover, .btn:hover {
+  background: var(--accent-hover);
+}
+
+button:active, .btn:active {
+  background: var(--accent-active);
+  transform: translateY(1px); /* 押した時に少し凹む演出 */
+}
+
+button:focus-visible, .btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
 
 .badge {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 12px;
 }
 
