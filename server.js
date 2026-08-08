@@ -139,8 +139,22 @@ function createServer(discordActions) {
       return res.render('wait', { remainingSec });
     }
 
-    const questions = pickRandomQuestions(Number(QUIZ_QUESTION_COUNT) || 3);
-    req.session.quizQuestionIds = questions.map((q) => q.id);
+    let questionIds = [];
+    if (member.assigned_questions) {
+      try {
+        questionIds = JSON.parse(member.assigned_questions);
+      } catch (e) {
+        questionIds = [];
+      }
+    }
+
+    if (!questionIds || questionIds.length === 0) {
+      const selected = pickRandomQuestions(Number(QUIZ_QUESTION_COUNT) || 3);
+      questionIds = selected.map((q) => q.id);
+      db.setAssignedQuestions(discordId, questionIds); // ★ DBに永続化！
+    }
+
+    const questions = getQuestionsByIds(questionIds);
 
     res.render('quiz', {
       questions: questions.map((q) => ({ id: q.id, question: q.question, choices: q.choices })),
@@ -153,7 +167,10 @@ function createServer(discordActions) {
     const member = db.getMember(discordId);
     if (!member) return res.redirect('/quiz');
 
-    const questionIds = req.session.quizQuestionIds || [];
+    let questionIds = [];
+    if (member.assigned_questions) {
+      try { questionIds = JSON.parse(member.assigned_questions); } catch (e) {}
+    }
     if (questionIds.length === 0) return res.redirect('/quiz');
 
     const questions = getQuestionsByIds(questionIds);
@@ -162,7 +179,7 @@ function createServer(discordActions) {
       return submitted !== undefined && Number(submitted) === q.answerIndex;
     });
 
-    req.session.quizQuestionIds = null;
+    db.setAssignedQuestions(discordId, null);
 
     if (allCorrect) {
       req.session.quizPassed = true;

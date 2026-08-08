@@ -35,6 +35,15 @@ function getMember(discordId) {
   return db.prepare(`SELECT * FROM members WHERE discord_id = ?`).get(discordId);
 }
 
+function setAssignedQuestions(discordId, questionIds) {
+  const jsonStr = questionIds ? JSON.stringify(questionIds) : null;
+  const now = Date.now();
+  db.prepare(`
+    UPDATE members 
+    SET assigned_questions = ?, updated_at = ? 
+    WHERE discord_id = ?
+  `).run(jsonStr, now, discordId);
+}
 
 function incrementWrongStreak(discordId) {
   db.prepare(`UPDATE members SET wrong_streak = wrong_streak + 1, updated_at = ? WHERE discord_id = ?`)
@@ -64,6 +73,7 @@ function deleteMember(discordId) {
 module.exports = {
   upsertJoin,
   getMember,
+  setAssignedQuestions,
   incrementWrongStreak,
   resetWrongStreak,
   setCooldown,
