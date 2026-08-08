@@ -28,4 +28,4 @@ function getQuestionsByIds(ids) {
   return ids.map((id) => questions.find((q) => q.id === id)).filter(Boolean);
 }
 
-module.exports = { QUESTIONS, pickRandomQuestions, getQuestionsByIds };
+module.exports = { pickRandomQuestions, getQuestionsByIds };
